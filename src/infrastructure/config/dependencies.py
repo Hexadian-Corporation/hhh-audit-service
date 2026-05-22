@@ -1,4 +1,4 @@
-import contextlib
+import logging
 
 from hexadian_auth_common.fastapi import JWTAuthDependency
 from hhh_events import EventsInfrastructure, EventSubscriber
@@ -11,6 +11,8 @@ from src.application.services.audit_service_impl import AuditServiceImpl
 from src.infrastructure.adapters.inbound.events.audit_event_handler import AuditEventHandler
 from src.infrastructure.adapters.outbound.persistence.mongo_audit_repository import MongoAuditRepository
 from src.infrastructure.config.settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class AppModule(Module):
@@ -47,5 +49,7 @@ class AppModule(Module):
 
     def close(self) -> None:
         if self._events_infrastructure is not None:
-            with contextlib.suppress(Exception):
+            try:
                 self._events_infrastructure.close()
+            except Exception:
+                logger.exception("events_infrastructure.close failed")

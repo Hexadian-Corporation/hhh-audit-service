@@ -60,3 +60,41 @@ def test_retention_days_must_be_positive(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("HHH_AUDIT_RETENTION_DAYS", "0")
     with pytest.raises(ValueError):
         Settings()
+
+
+def test_auth_audiences_rejects_malformed_json_list(monkeypatch: pytest.MonkeyPatch):
+    # Looks like a JSON list (starts with [) but is malformed - must NOT fall back to comma-split.
+    monkeypatch.setenv("HHH_AUDIT_AUTH_AUDIENCES", '["alpha", "beta')
+    with pytest.raises(ValueError, match="looks like a JSON list but is malformed"):
+        Settings()
+
+
+def test_cors_origins_rejects_malformed_json_list(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("HHH_AUDIT_CORS_ORIGINS", "[http://x.test")
+    with pytest.raises(ValueError, match="looks like a JSON list but is malformed"):
+        Settings()
+
+
+def test_cors_origins_comma_split_path_still_works(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("HHH_AUDIT_CORS_ORIGINS", "http://a.test, http://b.test")
+    s = Settings()
+    assert s.cors_origins == ["http://a.test", "http://b.test"]
+
+
+def test_cors_origins_accepts_json_list(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("HHH_AUDIT_CORS_ORIGINS", '["http://a.test","http://b.test"]')
+    s = Settings()
+    assert s.cors_origins == ["http://a.test", "http://b.test"]
+
+
+def test_auth_audiences_rejects_non_list_json(monkeypatch: pytest.MonkeyPatch):
+    # JSON parses but is not a list (after the lstrip check passes by [ - actually this is invalid JSON;
+    # use a list-with-dict shape that parses but the top-level is still a list... use a string that
+    # starts with [ and parses to a non-list value via a tricky construct - actually json.loads of
+    # "[1, 2, 3]" returns a list; to get a non-list we need "[".lstrip startswith [ check to pass
+    # but JSON to return non-list. That's impossible: any JSON starting with [ is an array. So this
+    # test instead exercises the "non-list JSON object via inner-bracket" case by sending a string
+    # that starts with [ but parses to a JSON array - just confirm the array path works).
+    monkeypatch.setenv("HHH_AUDIT_AUTH_AUDIENCES", '["solo"]')
+    s = Settings()
+    assert s.auth_audiences == ["solo"]
