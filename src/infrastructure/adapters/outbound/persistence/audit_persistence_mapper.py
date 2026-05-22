@@ -9,7 +9,7 @@ class AuditPersistenceMapper:
     @staticmethod
     def to_domain(doc: dict[str, Any]) -> AuditEvent:
         """Map a MongoDB document dict to an AuditEvent instance."""
-        id = str(doc["_id"])
+        event_id = str(doc["_id"])
         timestamp = doc["timestamp"]
         resource_type = doc["resource_type"]
         action = doc["action"]
@@ -21,7 +21,7 @@ class AuditPersistenceMapper:
         client_ip = doc.get("client_ip")
         payload = doc.get("payload", {})
         return AuditEvent(
-            id=id,
+            id=event_id,
             timestamp=timestamp,
             resource_type=resource_type,
             action=action,
@@ -55,5 +55,5 @@ class AuditPersistenceMapper:
             "actor_email": event.actor_email,
             "resource_id": event.resource_id,
             "client_ip": event.client_ip,
-            "payload": event.payload,
+            "payload": dict(event.payload),
         }

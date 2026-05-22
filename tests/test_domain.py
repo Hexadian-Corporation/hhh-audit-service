@@ -24,11 +24,14 @@ def test_audit_event_is_frozen(audit_event):
 
 
 def test_audit_event_payload_factory_is_independent():
+    # Payload is now an immutable MappingProxyType; assert both default payloads are empty
+    # and that they are distinct objects (no shared mutable default).
     ts = datetime(2026, 1, 1, tzinfo=UTC)
     a = AuditEvent(id="1", timestamp=ts, resource_type="r", action="a", outcome="success", source_service="s")
     b = AuditEvent(id="2", timestamp=ts, resource_type="r", action="a", outcome="success", source_service="s")
-    a.payload["x"] = 1
-    assert b.payload == {}
+    assert dict(a.payload) == {}
+    assert dict(b.payload) == {}
+    assert a.payload is not b.payload
 
 
 def test_audit_event_not_found_is_audit_error():
