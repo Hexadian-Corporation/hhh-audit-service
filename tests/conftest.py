@@ -1,7 +1,6 @@
 """Shared pytest fixtures for hhh-audit-service tests."""
 
 import base64
-import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -13,14 +12,29 @@ import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from pytest import MonkeyPatch
 from pytest_httpserver import HTTPServer
 
 TEST_AUDIENCES = ["hexadian-hhh", "hexadian-hhh-admin"]
 TEST_ISSUER = "https://auth.hexadian.com"
 
-os.environ.setdefault("HHH_AUDIT_AUTH_JWKS_URL", "https://auth.example.test/.well-known/jwks.json")
-os.environ.setdefault("HHH_AUDIT_AUTH_ISSUER", TEST_ISSUER)
-os.environ.setdefault("HHH_AUDIT_AUTH_AUDIENCES", ",".join(TEST_AUDIENCES))
+
+@pytest.fixture(autouse=True, scope="session")
+def _set_required_env_vars() -> Any:
+    """Provide minimum required Settings env vars for the test session.
+
+    Uses a session-scoped MonkeyPatch context manager so changes are reverted
+    after the run instead of mutating os.environ at import time (which would
+    leak into other test runners and obscure missing-env-var bugs).
+    """
+    mp = MonkeyPatch()
+    mp.setenv("HHH_AUDIT_AUTH_JWKS_URL", "https://auth.example.test/.well-known/jwks.json")
+    mp.setenv("HHH_AUDIT_AUTH_ISSUER", TEST_ISSUER)
+    mp.setenv("HHH_AUDIT_AUTH_AUDIENCES", ",".join(TEST_AUDIENCES))
+    try:
+        yield
+    finally:
+        mp.undo()
 
 
 def _int_to_base64url(num: int) -> str:

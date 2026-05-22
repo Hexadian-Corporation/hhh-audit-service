@@ -115,9 +115,8 @@ def test_lifespan_closes_motor_and_events_infra(patched_app):
 def test_lifespan_propagates_ensure_timeseries_failure(patched_app):
     # ensure_timeseries_collection failure must propagate so uvicorn fails startup
     patched_app["db"].list_collection_names.side_effect = RuntimeError("boom")
-    with pytest.raises(RuntimeError, match="boom"):
-        with TestClient(patched_app["app"]):
-            pass
+    with pytest.raises(RuntimeError, match="boom"), TestClient(patched_app["app"]):
+        pass
 
 
 def test_lifespan_swallows_motor_close_failure(patched_app):

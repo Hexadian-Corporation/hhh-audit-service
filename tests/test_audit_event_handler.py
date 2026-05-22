@@ -97,9 +97,7 @@ async def test_handle_reraises_on_pymongoerror_and_stops_after_first_failure(
 
 
 @pytest.mark.asyncio
-async def test_handle_reraises_on_connection_error(
-    handler: AuditEventHandler, mock_service: AsyncMock
-) -> None:
+async def test_handle_reraises_on_connection_error(handler: AuditEventHandler, mock_service: AsyncMock) -> None:
     mock_service.record_event.side_effect = ConnectionError("connection refused")
     event = _make_event(["id-1", "id-2"])
     with pytest.raises(ConnectionError, match="connection refused"):
@@ -108,9 +106,7 @@ async def test_handle_reraises_on_connection_error(
 
 
 @pytest.mark.asyncio
-async def test_handle_reraises_on_timeout_error(
-    handler: AuditEventHandler, mock_service: AsyncMock
-) -> None:
+async def test_handle_reraises_on_timeout_error(handler: AuditEventHandler, mock_service: AsyncMock) -> None:
     mock_service.record_event.side_effect = TimeoutError("timeout")
     event = _make_event(["id-1"])
     with pytest.raises(TimeoutError, match="timeout"):
@@ -119,9 +115,7 @@ async def test_handle_reraises_on_timeout_error(
 
 
 @pytest.mark.asyncio
-async def test_handle_reraises_on_programmer_value_error(
-    handler: AuditEventHandler, mock_service: AsyncMock
-) -> None:
+async def test_handle_reraises_on_programmer_value_error(handler: AuditEventHandler, mock_service: AsyncMock) -> None:
     mock_service.record_event.side_effect = ValueError("bad payload")
     event = _make_event(["id-1"])
     with pytest.raises(ValueError, match="bad payload"):
@@ -130,9 +124,7 @@ async def test_handle_reraises_on_programmer_value_error(
 
 
 @pytest.mark.asyncio
-async def test_handle_reraises_on_runtime_error(
-    handler: AuditEventHandler, mock_service: AsyncMock
-) -> None:
+async def test_handle_reraises_on_runtime_error(handler: AuditEventHandler, mock_service: AsyncMock) -> None:
     mock_service.record_event.side_effect = RuntimeError("db down")
     event = _make_event(["id-1"])
     with pytest.raises(RuntimeError, match="db down"):

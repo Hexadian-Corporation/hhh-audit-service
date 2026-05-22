@@ -2,8 +2,8 @@ import logging
 from uuid import uuid4
 
 from hhh_events import EventDocument, EventHandler
-from pymongo.errors import PyMongoError
 from pydantic import ValidationError  # noqa: F401
+from pymongo.errors import PyMongoError
 
 from src.application.ports.inbound.audit_service import AuditService
 from src.domain.models.audit_event import AuditEvent

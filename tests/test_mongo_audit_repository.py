@@ -5,13 +5,12 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pymongo.errors import PyMongoError
 
+from src.infrastructure.adapters.outbound.persistence.audit_persistence_mapper import AuditPersistenceMapper
 from src.infrastructure.adapters.outbound.persistence.mongo_audit_repository import (
     COLLECTION_NAME,
     WRONG_SHAPE_MSG,
     MongoAuditRepository,
 )
-from src.infrastructure.adapters.outbound.persistence.audit_persistence_mapper import AuditPersistenceMapper
-from src.domain.models.audit_event import AuditEvent
 
 
 @pytest.fixture
@@ -57,9 +56,7 @@ async def test_ensure_timeseries_creates_when_missing(mock_collection, repo):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("retention_seconds", [1, 86400, 31_536_000])
-async def test_ensure_timeseries_creates_with_parametrised_retention(
-    mock_collection, retention_seconds
-):
+async def test_ensure_timeseries_creates_with_parametrised_retention(mock_collection, retention_seconds):
     mock_collection.database.list_collection_names.return_value = []
     repo = MongoAuditRepository(mock_collection, retention_seconds=retention_seconds)
 
@@ -72,14 +69,10 @@ async def test_ensure_timeseries_creates_with_parametrised_retention(
 
 
 @pytest.mark.asyncio
-async def test_ensure_timeseries_updates_retention_when_exists_and_is_timeseries(
-    mock_collection, repo
-):
+async def test_ensure_timeseries_updates_retention_when_exists_and_is_timeseries(mock_collection, repo):
     mock_collection.database.list_collection_names.return_value = [COLLECTION_NAME]
     # first command: listCollections returns valid timeseries
-    list_collections_result = {
-        "cursor": {"firstBatch": [{"options": {"timeseries": {"timeField": "timestamp"}}}]}
-    }
+    list_collections_result = {"cursor": {"firstBatch": [{"options": {"timeseries": {"timeField": "timestamp"}}}]}}
     collmod_result = {"ok": 1}
     mock_collection.database.command.side_effect = [list_collections_result, collmod_result]
 
@@ -103,14 +96,10 @@ async def test_ensure_timeseries_updates_retention_when_exists_and_is_timeseries
 
 
 @pytest.mark.asyncio
-async def test_ensure_timeseries_raises_when_exists_but_not_timeseries(
-    mock_collection, repo
-):
+async def test_ensure_timeseries_raises_when_exists_but_not_timeseries(mock_collection, repo):
     mock_collection.database.list_collection_names.return_value = [COLLECTION_NAME]
     # result without timeseries key
-    mock_collection.database.command.return_value = {
-        "cursor": {"firstBatch": [{"options": {}}]}
-    }
+    mock_collection.database.command.return_value = {"cursor": {"firstBatch": [{"options": {}}]}}
 
     with pytest.raises(RuntimeError, match=WRONG_SHAPE_MSG):
         await repo.ensure_timeseries_collection()
@@ -121,9 +110,7 @@ async def test_ensure_timeseries_raises_when_exists_but_not_timeseries(
 
 
 @pytest.mark.asyncio
-async def test_ensure_timeseries_raises_when_listcollections_returns_empty_first_batch(
-    mock_collection, repo
-):
+async def test_ensure_timeseries_raises_when_listcollections_returns_empty_first_batch(mock_collection, repo):
     mock_collection.database.list_collection_names.return_value = [COLLECTION_NAME]
     mock_collection.database.command.return_value = {"cursor": {"firstBatch": []}}
 
@@ -135,14 +122,10 @@ async def test_ensure_timeseries_raises_when_listcollections_returns_empty_first
 
 
 @pytest.mark.asyncio
-async def test_ensure_timeseries_propagates_pymongoerror_on_collmod(
-    mock_collection, repo
-):
+async def test_ensure_timeseries_propagates_pymongoerror_on_collmod(mock_collection, repo):
     mock_collection.database.list_collection_names.return_value = [COLLECTION_NAME]
     # first call OK, second raises PyMongoError
-    list_collections_result = {
-        "cursor": {"firstBatch": [{"options": {"timeseries": {}}}]}
-    }
+    list_collections_result = {"cursor": {"firstBatch": [{"options": {"timeseries": {}}}]}}
     mock_collection.database.command.side_effect = [
         list_collections_result,
         PyMongoError("collMod failed"),

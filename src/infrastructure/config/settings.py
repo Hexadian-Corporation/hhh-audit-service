@@ -27,7 +27,7 @@ def _parse_list_setting(env: str, v: object) -> list[str]:
         try:
             parsed = json.loads(v)
         except json.JSONDecodeError as e:
-            raise ValueError(f"{env} looks like a JSON list but is malformed: {e}")
+            raise ValueError(f"{env} looks like a JSON list but is malformed: {e}") from e
         if not isinstance(parsed, list):
             raise ValueError(f"{env} JSON-encoded value must be a list.")
         if not parsed:

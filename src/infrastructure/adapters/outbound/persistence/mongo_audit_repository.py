@@ -1,7 +1,6 @@
 import logging
 
 from motor.motor_asyncio import AsyncIOMotorCollection
-from pymongo.errors import PyMongoError
 
 from src.application.ports.outbound.audit_repository import AuditRepository
 from src.domain.models.audit_event import AuditEvent
@@ -25,18 +24,14 @@ class MongoAuditRepository(AuditRepository):
         existing = bool(await db.list_collection_names(filter={"name": COLLECTION_NAME}))
         if existing:
             logger.info("audit_events collection already exists; checking shape")
-            list_result = await db.command(
-                {"listCollections": 1, "filter": {"name": COLLECTION_NAME}}
-            )
+            list_result = await db.command({"listCollections": 1, "filter": {"name": COLLECTION_NAME}})
             first_batch = list_result.get("cursor", {}).get("firstBatch", [])
             if not first_batch:
                 raise RuntimeError(WRONG_SHAPE_MSG)
             options = first_batch[0].get("options", {})
             if "timeseries" not in options:
                 raise RuntimeError(WRONG_SHAPE_MSG)
-            await db.command(
-                {"collMod": COLLECTION_NAME, "expireAfterSeconds": self._retention_seconds}
-            )
+            await db.command({"collMod": COLLECTION_NAME, "expireAfterSeconds": self._retention_seconds})
             logger.info("retention=%ds applied to audit_events", self._retention_seconds)
         else:
             logger.info(
