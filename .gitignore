@@ -21,3 +21,5 @@ pr_body.md
 coverage.xml
 .mypy_cache/
 *.log
+/.ds/
+/.ds_*

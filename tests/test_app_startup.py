@@ -1,9 +1,14 @@
+"""Tests for FastAPI lifespan startup and shutdown."""
+
 import asyncio
 import importlib
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
+from src.infrastructure.adapters.inbound.events.audit_event_handler import AuditEventHandler
 
 
 def _make_fake_db() -> MagicMock:
@@ -27,7 +32,7 @@ def patched_app():
     fake_subscriber = MagicMock()
 
     async def _hang(*_args, **_kwargs):
-        await asyncio.sleep(3600)
+        await asyncio.Event().wait()
 
     fake_subscriber.run = AsyncMock(side_effect=_hang)
 
@@ -39,11 +44,13 @@ def patched_app():
     fake_collection = _make_fake_collection(fake_db)
 
     fake_motor_client = MagicMock()
-    # motor_client[db_name] -> fake_db
     fake_motor_client.__getitem__.return_value = fake_db
     fake_motor_client.close = MagicMock()
-    # fake_db[collection_name] -> fake_collection
     fake_db.__getitem__.return_value = fake_collection
+    # admin.command for /health mongo ping
+    fake_admin = MagicMock()
+    fake_admin.command = AsyncMock(return_value={"ok": 1.0})
+    fake_motor_client.admin = fake_admin
 
     fake_jwt_instance = MagicMock()
 
@@ -88,11 +95,13 @@ def test_lifespan_calls_ensure_timeseries_collection(patched_app):
     patched_app["db"].create_collection.assert_awaited()
 
 
-def test_lifespan_starts_subscriber_task(patched_app):
+def test_lifespan_starts_subscriber_task_and_passes_handler(patched_app):
     with TestClient(patched_app["app"]) as client:
         client.get("/health")
     patched_app["subscriber"].run.assert_called_once()
     call = patched_app["subscriber"].run.call_args
+    handler_arg = call.args[0]
+    assert isinstance(handler_arg, AuditEventHandler)
     assert call.kwargs.get("label") == "audit-service"
 
 
@@ -103,13 +112,12 @@ def test_lifespan_closes_motor_and_events_infra(patched_app):
     patched_app["events_infra"].close.assert_called_once()
 
 
-def test_lifespan_swallows_ensure_timeseries_failure(patched_app):
-    # make list_collection_names raise -> ensure_timeseries_collection raises
-    # -> lifespan must catch and continue
+def test_lifespan_propagates_ensure_timeseries_failure(patched_app):
+    # ensure_timeseries_collection failure must propagate so uvicorn fails startup
     patched_app["db"].list_collection_names.side_effect = RuntimeError("boom")
-    with TestClient(patched_app["app"]) as client:
-        r = client.get("/health")
-        assert r.status_code == 200
+    with pytest.raises(RuntimeError, match="boom"):
+        with TestClient(patched_app["app"]):
+            pass
 
 
 def test_lifespan_swallows_motor_close_failure(patched_app):
@@ -117,3 +125,34 @@ def test_lifespan_swallows_motor_close_failure(patched_app):
     with TestClient(patched_app["app"]):
         pass
     patched_app["motor"].close.assert_called_once()
+
+
+def test_lifespan_swallows_module_close_failure(patched_app):
+    patched_app["events_infra"].close.side_effect = RuntimeError("infra close failed")
+    with TestClient(patched_app["app"]):
+        pass
+    # module.close() internally calls events_infra.close; lifespan must catch
+    patched_app["events_infra"].close.assert_called_once()
+
+
+def test_subscriber_crash_marks_alive_false(patched_app):
+    patched_app["subscriber"].run.side_effect = RuntimeError("subscriber boom")
+    app = patched_app["app"]
+    with TestClient(app) as client:
+        # Allow event loop a moment to run the failing coroutine and fire done_callback
+        for _ in range(20):
+            time.sleep(0.05)
+            if getattr(app.state, "subscriber_alive", True) is False:
+                break
+        response = client.get("/health")
+    assert app.state.subscriber_alive is False
+    assert response.status_code == 503
+    assert response.json()["checks"]["subscriber"]["status"] == "degraded"
+
+
+def test_subscriber_task_cancelled_on_shutdown(patched_app):
+    app = patched_app["app"]
+    captured: dict = {}
+    with TestClient(app):
+        captured["task"] = app.state.subscriber_task
+    assert captured["task"].cancelled() is True
