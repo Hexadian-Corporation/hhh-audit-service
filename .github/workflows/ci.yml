@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: [self-hosted, runner-light]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+      - name: Remove untracked files left by previous runs
+        run: git clean -ffdx
+      - uses: astral-sh/setup-uv@v7
+      - name: Verify Hexadian devpi credentials are set
+        id: devpi-check
+        shell: bash
+        env:
+          UV_INDEX_HEXADIAN_USERNAME: ${{ secrets.DEVPI_USERNAME }}
+          UV_INDEX_HEXADIAN_PASSWORD: ${{ secrets.DEVPI_PASSWORD }}
+        run: |
+          if [[ -z "$UV_INDEX_HEXADIAN_USERNAME" || -z "$UV_INDEX_HEXADIAN_PASSWORD" ]]; then
+            if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+              echo "::notice::Dependabot PR — DEVPI secrets not in Dependabot secret store. Skipping registry-dependent steps. Add DEVPI_USERNAME / DEVPI_PASSWORD as org-level Dependabot secrets to restore full CI."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::DEVPI_USERNAME / DEVPI_PASSWORD repo secret missing or empty"
+              exit 1
+            fi
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install dependencies
+        if: steps.devpi-check.outputs.skip != 'true'
+        run: uv sync --extra dev
+        env:
+          UV_INDEX_HEXADIAN_USERNAME: ${{ secrets.DEVPI_USERNAME }}
+          UV_INDEX_HEXADIAN_PASSWORD: ${{ secrets.DEVPI_PASSWORD }}
+      - name: Check linting
+        if: steps.devpi-check.outputs.skip != 'true'
+        run: uv run ruff check .
+      - name: Check formatting
+        if: steps.devpi-check.outputs.skip != 'true'
+        run: uv run ruff format --check .
+
+  test:
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    uses: Hexadian-Corporation/.github/.github/workflows/python-service-test-reusable.yml@main
+    with:
+      git-clean: true
+    secrets:
+      DEVPI_USERNAME: ${{ secrets.DEVPI_USERNAME }}
+      DEVPI_PASSWORD: ${{ secrets.DEVPI_PASSWORD }}
+
+  claude-fix:
+    name: Request Claude Fix
+    needs: [lint, test]
+    if: failure()
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    uses: Hexadian-Corporation/.github/.github/workflows/copilot-fix-reusable.yml@main
+    with:
+      stack: python
