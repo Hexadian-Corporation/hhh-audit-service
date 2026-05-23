@@ -19,11 +19,9 @@ class AuditEventHandler(EventHandler):
     async def handle(self, event: EventDocument) -> int:
         """Persist an audit entry per modified resource; returns count of records written.
 
-        On transient failure (PyMongoError, ConnectionError, TimeoutError) re-raises
-        to trigger subscriber retry of the whole event.
-
-        On programmer error (KeyError, AttributeError, ValueError, etc.) also re-raises
-        so the subscriber's done_callback can mark the service unhealthy.
+        On transient failure (PyMongoError, ConnectionError, TimeoutError) logs and
+        re-raises to trigger subscriber retry.  All other exceptions propagate
+        unhandled so the subscriber's done_callback can mark the service unhealthy.
         """
         ids = event.modified_ids or [None]
         recorded = 0

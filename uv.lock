@@ -393,34 +393,19 @@ wheels = [
 
 [[package]]
 name = "hexadian-auth-common"
-version = "2.1.0"
-source = { editable = "../hexadian-auth-common-feat-issue-240" }
+version = "2.0.1"
+source = { registry = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" }
 dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
+]
+wheels = [
+    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/9ee/0501c883cbb44/hexadian_auth_common-2.0.1-py3-none-any.whl", hash = "sha256:9ee0501c883cbb44c8030a1869d02ccfe5ec7a9d4b45eae6a85742609c1fa98c" },
 ]
 
 [package.optional-dependencies]
 fastapi = [
     { name = "fastapi" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "cryptography", marker = "extra == 'dev'", specifier = ">=42" },
-    { name = "diff-cover", marker = "extra == 'dev'", specifier = ">=9,<11" },
-    { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.100" },
-    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.100" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27,<1" },
-    { name = "httpx", marker = "extra == 'introspection'", specifier = ">=0.27,<1" },
-    { name = "httpx", marker = "extra == 'portal-limits'", specifier = ">=0.27,<1" },
-    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.8,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8,<10" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23,<2" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5,<8" },
-    { name = "pytest-httpserver", marker = "extra == 'dev'", specifier = ">=1.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9" },
-]
-provides-extras = ["fastapi", "introspection", "portal-limits", "dev"]
 
 [[package]]
 name = "hhh-audit-service"
@@ -458,8 +443,8 @@ requires-dist = [
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=42" },
     { name = "diff-cover", marker = "extra == 'dev'", specifier = ">=9.0" },
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "hexadian-auth-common", extras = ["fastapi"], editable = "../hexadian-auth-common-feat-issue-240" },
-    { name = "hhh-events", editable = "../feat/issue-240-audit-hardening/hhh-events" },
+    { name = "hexadian-auth-common", extras = ["fastapi"], specifier = ">=2.0.0,<3", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
+    { name = "hhh-events", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28" },
     { name = "motor", specifier = ">=3.6,<4" },
     { name = "opyoid", specifier = ">=0.6,<4.0" },
@@ -478,27 +463,16 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "hhh-events"
-version = "0.2.0"
-source = { editable = "../feat/issue-240-audit-hardening/hhh-events" }
+version = "0.1.0"
+source = { registry = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" }
 dependencies = [
     { name = "motor" },
     { name = "pydantic" },
     { name = "pymongo" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "diff-cover", marker = "extra == 'dev'", specifier = ">=9.0" },
-    { name = "motor", specifier = ">=3.6,<4" },
-    { name = "pydantic", specifier = ">=2.10" },
-    { name = "pymongo", specifier = ">=4.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9" },
-    { name = "testcontainers", extras = ["mongodb"], marker = "extra == 'dev'", specifier = ">=4.0.0" },
+wheels = [
+    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/8d1/96f5cdd6366fa/hhh_events-0.1.0-py3-none-any.whl", hash = "sha256:8d196f5cdd6366fae296a746e4f71320285defef0acec13cbd836569749ca38e" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "httpcore"
