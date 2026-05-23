@@ -6,6 +6,7 @@ on:
 
 jobs:
   notify:
-    uses: Hexadian-Corporation/.github/.github/workflows/notify-main-reusable.yml@main
+    # Pinned to Hexadian-Corporation/.github @ main 2026-05-23 (see Dependabot for bumps)
+    uses: Hexadian-Corporation/.github/.github/workflows/notify-main-reusable.yml@82c6bd07bfbf95b123f19d6a0da0dede44976f68
     secrets:
       PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
