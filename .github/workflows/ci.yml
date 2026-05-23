@@ -54,7 +54,7 @@ jobs:
       actions: read
       contents: read
       pull-requests: write
-    # Pinned to Hexadian-Corporation/.github @ main 2026-05-23 (see Dependabot for bumps)
+    # Pinned SHA from Hexadian-Corporation/.github (branch: main). Bumps via Dependabot.
     uses: Hexadian-Corporation/.github/.github/workflows/python-service-test-reusable.yml@82c6bd07bfbf95b123f19d6a0da0dede44976f68
     with:
       git-clean: true
@@ -70,7 +70,7 @@ jobs:
       actions: read
       contents: read
       pull-requests: write
-    # Pinned to Hexadian-Corporation/.github @ main 2026-05-23 (see Dependabot for bumps)
+    # Pinned SHA from Hexadian-Corporation/.github (branch: main). Bumps via Dependabot.
     uses: Hexadian-Corporation/.github/.github/workflows/copilot-fix-reusable.yml@82c6bd07bfbf95b123f19d6a0da0dede44976f68
     with:
       stack: python

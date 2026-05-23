@@ -10,6 +10,7 @@ updates:
     reviewers:
       - nahumcueto
     open-pull-requests-limit: 5
+    # Bundle all github-actions bumps (incl. reusable workflows) into one weekly PR.
     groups:
       github-actions:
         patterns:
