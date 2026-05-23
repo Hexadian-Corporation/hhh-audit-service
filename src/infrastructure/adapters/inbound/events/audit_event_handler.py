@@ -2,7 +2,6 @@ import logging
 from uuid import uuid4
 
 from hhh_events import EventDocument, EventHandler
-from pydantic import ValidationError  # noqa: F401
 from pymongo.errors import PyMongoError
 
 from src.application.ports.inbound.audit_service import AuditService
@@ -52,13 +51,6 @@ class AuditEventHandler(EventHandler):
             except (PyMongoError, ConnectionError, TimeoutError):
                 logger.exception(
                     "Transient failure persisting audit event for type=%s id=%s",
-                    event.type,
-                    resource_id,
-                )
-                raise
-            except Exception:
-                logger.exception(
-                    "Programmer error persisting audit event for type=%s id=%s",
                     event.type,
                     resource_id,
                 )
