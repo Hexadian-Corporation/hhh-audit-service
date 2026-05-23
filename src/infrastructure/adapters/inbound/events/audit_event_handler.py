@@ -19,9 +19,14 @@ class AuditEventHandler(EventHandler):
     async def handle(self, event: EventDocument) -> int:
         """Persist an audit entry per modified resource; returns count of records written.
 
+        Both resource_type and action are set to event.type; finer-grained action
+        classification is deferred to a later schema iteration.
+
         On transient failure (PyMongoError, ConnectionError, TimeoutError) logs and
         re-raises to trigger subscriber retry.  All other exceptions propagate
         unhandled so the subscriber's done_callback can mark the service unhealthy.
+        If a transient error occurs mid-loop, previously written records are not
+        rolled back — callers should treat a raised exception as a partial write.
         """
         ids = event.modified_ids or [None]
         recorded = 0
