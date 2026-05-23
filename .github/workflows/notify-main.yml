@@ -1,0 +1,11 @@
+name: Notify hexadian-hauling-helper
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    uses: Hexadian-Corporation/.github/.github/workflows/notify-main-reusable.yml@main
+    secrets:
+      PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
