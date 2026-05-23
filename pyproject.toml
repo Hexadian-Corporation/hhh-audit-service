@@ -14,7 +14,7 @@ dependencies = [
     "motor>=3.6,<4",
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
-    "hexadian-auth-common[fastapi]>=2.0.0,<3",
+    "hexadian-auth-common[fastapi]>=2.1.0,<3",
     "hhh-events",
     "psutil>=5.9.0",
 ]

@@ -38,6 +38,9 @@ class AuditEventHandler(EventHandler):
                     outcome="success",
                     source_service=event.source_service,
                     resource_id=resource_id,
+                    actor_id=event.actor_id,
+                    actor_email=event.actor_email,
+                    client_ip=event.client_ip,
                     payload={
                         "mode": event.mode.value,
                         "metadata": event.metadata,
