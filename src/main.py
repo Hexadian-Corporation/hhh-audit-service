@@ -9,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from hexadian_auth_common.fastapi import JWTAuthDependency, _stub_jwt_auth, register_exception_handlers
+from hexadian_auth_common.fastapi import JWTAuthDependency, override_jwt_auth, register_exception_handlers
 from hhh_events import EventSubscriber
 from motor.motor_asyncio import AsyncIOMotorClient
 from opyoid import Injector
@@ -87,7 +87,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     register_exception_handlers(app)
-    app.dependency_overrides[_stub_jwt_auth] = jwt_auth
+    override_jwt_auth(app, jwt_auth)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

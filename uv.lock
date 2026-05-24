@@ -393,13 +393,13 @@ wheels = [
 
 [[package]]
 name = "hexadian-auth-common"
-version = "2.0.1"
+version = "2.1.0"
 source = { registry = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" }
 dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
 ]
 wheels = [
-    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/9ee/0501c883cbb44/hexadian_auth_common-2.0.1-py3-none-any.whl", hash = "sha256:9ee0501c883cbb44c8030a1869d02ccfe5ec7a9d4b45eae6a85742609c1fa98c" },
+    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/100/43a437fed12e8/hexadian_auth_common-2.1.0-py3-none-any.whl", hash = "sha256:10043a437fed12e890fe3d9a85a0bcbca500787606653b49497cd58358d2b1c5" },
 ]
 
 [package.optional-dependencies]
@@ -443,8 +443,8 @@ requires-dist = [
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=42" },
     { name = "diff-cover", marker = "extra == 'dev'", specifier = ">=9.0" },
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "hexadian-auth-common", extras = ["fastapi"], specifier = ">=2.0.0,<3", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
-    { name = "hhh-events", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
+    { name = "hexadian-auth-common", extras = ["fastapi"], specifier = ">=2.1.0,<3", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
+    { name = "hhh-events", specifier = ">=0.2.0,<0.3", index = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28" },
     { name = "motor", specifier = ">=3.6,<4" },
     { name = "opyoid", specifier = ">=0.6,<4.0" },
@@ -463,7 +463,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "hhh-events"
-version = "0.1.0"
+version = "0.2.0"
 source = { registry = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+simple/" }
 dependencies = [
     { name = "motor" },
@@ -471,7 +471,7 @@ dependencies = [
     { name = "pymongo" },
 ]
 wheels = [
-    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/8d1/96f5cdd6366fa/hhh_events-0.1.0-py3-none-any.whl", hash = "sha256:8d196f5cdd6366fae296a746e4f71320285defef0acec13cbd836569749ca38e" },
+    { url = "http://z12trh7jzskrmq7blkanpj05.212.227.227.33.sslip.io/hexadian/stable/+f/6fc/a7f0157a4bf1b/hhh_events-0.2.0-py3-none-any.whl", hash = "sha256:6fca7f0157a4bf1b025507a6b0734c05cc82ee0824b0dbc9b2305782278a83bd" },
 ]
 
 [[package]]

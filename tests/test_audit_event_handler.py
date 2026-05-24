@@ -24,7 +24,13 @@ def handler(mock_service: AsyncMock) -> AuditEventHandler:
     return AuditEventHandler(service=mock_service)
 
 
-def _make_event(ids: list[str] | list[None] | list, event_type: str = "contract.created") -> EventDocument:
+def _make_event(
+    ids: list[str] | list[None] | list,
+    event_type: str = "contract.created",
+    actor_id: str | None = None,
+    actor_email: str | None = None,
+    client_ip: str | None = None,
+) -> EventDocument:
     return EventDocument(
         type=event_type,
         source_service="hhh-contracts-service",
@@ -33,6 +39,9 @@ def _make_event(ids: list[str] | list[None] | list, event_type: str = "contract.
         timestamp=datetime(2026, 3, 1, 10, 0, 0, tzinfo=UTC),
         metadata={"x": 1},
         retry_count=0,
+        actor_id=actor_id,
+        actor_email=actor_email,
+        client_ip=client_ip,
     )
 
 
@@ -54,6 +63,9 @@ async def test_handle_writes_one_audit_event_per_modified_id(
         assert ae.source_service == "hhh-contracts-service"
         assert ae.timestamp == event.timestamp
         assert ae.payload == {"mode": "incremental", "metadata": {"x": 1}, "retry_count": 0}
+        assert ae.actor_id is None
+        assert ae.actor_email is None
+        assert ae.client_ip is None
 
 
 @pytest.mark.asyncio
@@ -130,3 +142,18 @@ async def test_handle_reraises_on_runtime_error(handler: AuditEventHandler, mock
     with pytest.raises(RuntimeError, match="db down"):
         await handler.handle(event)
     assert mock_service.record_event.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_handle_propagates_actor_fields(handler: AuditEventHandler, mock_service: AsyncMock) -> None:
+    event = _make_event(
+        ["resource-1"],
+        actor_id="user-1",
+        actor_email="user@example.com",
+        client_ip="10.0.0.1",
+    )
+    await handler.handle(event)
+    ae: AuditEvent = mock_service.record_event.await_args.args[0]
+    assert ae.actor_id == "user-1"
+    assert ae.actor_email == "user@example.com"
+    assert ae.client_ip == "10.0.0.1"

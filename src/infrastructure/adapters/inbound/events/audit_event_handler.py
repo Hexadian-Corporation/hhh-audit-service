@@ -2,7 +2,6 @@ import logging
 from uuid import uuid4
 
 from hhh_events import EventDocument, EventHandler
-from pydantic import ValidationError  # noqa: F401
 from pymongo.errors import PyMongoError
 
 from src.application.ports.inbound.audit_service import AuditService
@@ -20,11 +19,14 @@ class AuditEventHandler(EventHandler):
     async def handle(self, event: EventDocument) -> int:
         """Persist an audit entry per modified resource; returns count of records written.
 
-        On transient failure (PyMongoError, ConnectionError, TimeoutError) re-raises
-        to trigger subscriber retry of the whole event.
+        Both resource_type and action are set to event.type; finer-grained action
+        classification is deferred to a later schema iteration.
 
-        On programmer error (KeyError, AttributeError, ValueError, etc.) also re-raises
-        so the subscriber's done_callback can mark the service unhealthy.
+        On transient failure (PyMongoError, ConnectionError, TimeoutError) logs and
+        re-raises to trigger subscriber retry.  All other exceptions propagate
+        unhandled so the subscriber's done_callback can mark the service unhealthy.
+        If a transient error occurs mid-loop, previously written records are not
+        rolled back — callers should treat a raised exception as a partial write.
         """
         ids = event.modified_ids or [None]
         recorded = 0
@@ -38,6 +40,9 @@ class AuditEventHandler(EventHandler):
                     outcome="success",
                     source_service=event.source_service,
                     resource_id=resource_id,
+                    actor_id=event.actor_id,
+                    actor_email=event.actor_email,
+                    client_ip=event.client_ip,
                     payload={
                         "mode": event.mode.value,
                         "metadata": event.metadata,
@@ -49,13 +54,6 @@ class AuditEventHandler(EventHandler):
             except (PyMongoError, ConnectionError, TimeoutError):
                 logger.exception(
                     "Transient failure persisting audit event for type=%s id=%s",
-                    event.type,
-                    resource_id,
-                )
-                raise
-            except Exception:
-                logger.exception(
-                    "Programmer error persisting audit event for type=%s id=%s",
                     event.type,
                     resource_id,
                 )
